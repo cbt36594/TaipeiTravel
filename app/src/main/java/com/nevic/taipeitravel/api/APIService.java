@@ -9,7 +9,7 @@ import retrofit2.Retrofit;
 
 public class APIService {
 
-    public static CallAPI callAPI(Context context, HashMap<String, String> map) {
+    public static CallAPI callAPI(HashMap<String, String> map) {
 
         Retrofit retrofit = APIClient.createJSONRetrofit("https://data.taipei/", map);
         return retrofit.create(CallAPI.class);

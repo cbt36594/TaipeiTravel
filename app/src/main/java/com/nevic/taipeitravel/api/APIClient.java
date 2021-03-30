@@ -3,6 +3,8 @@ package com.nevic.taipeitravel.api;
 import android.os.Build;
 import android.util.Log;
 
+import com.google.gson.GsonBuilder;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +36,7 @@ public class APIClient {
 //                .baseUrl("")
 //                .build();
         return new Retrofit.Builder()
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(new GsonBuilder().create()))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(baseUrl).client(okHttpClient).build();
     }
