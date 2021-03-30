@@ -8,17 +8,19 @@ import com.nevic.taipeitravel.api.APIService;
 import com.nevic.taipeitravel.api.CallAPI;
 
 import java.util.ArrayList;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.annotations.NonNull;
-import io.reactivex.rxjava3.core.SingleObserver;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Consumer;
-import io.reactivex.rxjava3.internal.operators.observable.ObservableSingleMaybe;
-import io.reactivex.rxjava3.observers.DisposableSingleObserver;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+
+import io.reactivex.SingleObserver;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.Disposable;
+
+import io.reactivex.schedulers.Schedulers;
+import retrofit2.Response;
 
 
 public class MainActivity extends AppCompatActivity {
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,15 +28,26 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         CallAPI callAPI = APIService.callAPI(this, APIService.getHeaders(new ArrayList<String>()));
-        callAPI.TaipeiData()
+        callAPI.TaipeiData("resourceAquire")
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe(new Consumer() {
+                .subscribe(new SingleObserver<Response<Result>>() {
 
                     @Override
-                    public void accept(Object o) throws Throwable {
+                    public void onSubscribe(@NonNull Disposable d) {
 
                     }
+
+                    @Override
+                    public void onSuccess(@NonNull Response<Result> resultResponse) {
+                        System.out.println(resultResponse);
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+
+                    }
+
 
                 });
     }

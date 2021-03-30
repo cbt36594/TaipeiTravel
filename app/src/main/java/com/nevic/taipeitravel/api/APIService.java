@@ -11,7 +11,7 @@ public class APIService {
 
     public static CallAPI callAPI(Context context, HashMap<String, String> map) {
 
-        Retrofit retrofit = APIClient.createJSONRetrofit("", map);
+        Retrofit retrofit = APIClient.createJSONRetrofit("https://data.taipei/", map);
         return retrofit.create(CallAPI.class);
     }
 

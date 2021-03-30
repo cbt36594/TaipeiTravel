@@ -19,7 +19,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.TlsVersion;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class APIClient {
@@ -35,7 +35,7 @@ public class APIClient {
 //                .build();
         return new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJava3CallAdapterFactory.createSynchronous())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(baseUrl).client(okHttpClient).build();
     }
 
