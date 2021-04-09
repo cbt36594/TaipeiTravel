@@ -1,0 +1,124 @@
+# Android
+# Build your Android project with Gradle.
+# Add steps that test, sign, and distribute the APK, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/android
+
+trigger:
+- release/*
+
+pool: 
+  vmImage: 'macos-latest'
+
+variables:
+  - group: android-build-variables
+  - group: android-version-variables-release
+  - group: Firebase
+  - name: androidVersionVariablesReleaseGroupId
+    value: 16
+  - name: NEW_VERSION_CODE
+    value: 0
+  - name: NEW_VERSION_NAME_MAJOR
+    value: 0
+  - name: NEW_VERSION_NAME_MINOR
+    value: 0
+  - name: NEW_VERSION_NAME_BUILD
+    value: 0
+  - name: NEW_VERSION_NAME_DATETIME
+    value: 0
+
+steps:
+- script: |
+    az extension add -n azure-devops
+    echo ${AZURE_DEVOPS_CLI_PAT} | az devops login
+    az devops configure --defaults organization=$(System.TeamFoundationCollectionUri) project=$(System.TeamProject) --use-git-aliases true
+  env:
+    AZURE_DEVOPS_CLI_PAT: $(System.AccessToken)
+  displayName: 'Init Azure DevOps'
+
+- script: |
+    echo '===== Azure DevOps version variables ====='
+    echo "versionCode: $(versionCode)"
+    echo "versionName.major: $(versionName.major)"
+    echo "versionName.minor: $(versionName.minor)"
+    echo "versionName.build: $(versionName.build)"
+    echo "versionName.datetime: $(versionName.datetime)"
+    echo '=========='
+    echo "##vso[task.setvariable variable=NEW_VERSION_CODE]$(( $(versionCode)+1 ))"
+    echo "##vso[task.setvariable variable=NEW_VERSION_NAME_MAJOR]$(versionName.major)"
+    echo "##vso[task.setvariable variable=NEW_VERSION_NAME_MINOR]$(versionName.minor)"
+    echo "##vso[task.setvariable variable=NEW_VERSION_NAME_BUILD]$(( $(versionName.build)+1 ))"
+    echo "##vso[task.setvariable variable=NEW_VERSION_NAME_DATETIME]$(git log -1 --format=%cd --date=format:%Y%m%d%H%M%S)"
+  displayName: 'Update pipeline variables'
+
+- script: |
+    VERSION_PROPERTIES="./version.properties"
+    echo '===== pipeline version variables ====='
+    echo "NEW_VERSION_CODE: $(NEW_VERSION_CODE)"
+    echo "NEW_VERSION_NAME_MAJOR: $(NEW_VERSION_NAME_MAJOR)"
+    echo "NEW_VERSION_NAME_MINOR: $(NEW_VERSION_NAME_MINOR)"
+    echo "NEW_VERSION_NAME_BUILD: $(NEW_VERSION_NAME_BUILD)"
+    echo "NEW_VERSION_NAME_DATETIME: $(NEW_VERSION_NAME_DATETIME)"
+    echo '===== old version.properties ====='
+    cat $VERSION_PROPERTIES
+    sed -i -e "s/VERSION_CODE=.*/VERSION_CODE=$(NEW_VERSION_CODE)/1" $VERSION_PROPERTIES
+    sed -i -e "s/VERSION_NAME=.*/VERSION_NAME=$(NEW_VERSION_NAME_MAJOR).$(NEW_VERSION_NAME_MINOR).$(NEW_VERSION_NAME_BUILD)/1" $VERSION_PROPERTIES
+    sed -i -e "s/VERSION_NAME_DATETIME=.*/VERSION_NAME_DATETIME=$(NEW_VERSION_NAME_DATETIME)/1" $VERSION_PROPERTIES
+    echo ''
+    echo '===== new version.properties ====='
+    cat $VERSION_PROPERTIES
+  displayName: 'Update version.properties'
+
+- task: Gradle@2
+  inputs:
+    workingDirectory: ''
+    gradleWrapperFile: 'gradlew'
+    gradleOptions: '-Xmx3072m'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    publishJUnitResults: false
+    testResultsFiles: '**/TEST-*.xml'
+    tasks: 'assembleUatRelease assemblePre_prdRelease assemblePrdRelease assemblePrd_googleRelease'
+
+- task: AndroidSigning@3
+  inputs:
+    apkFiles: '**/*.apk' 
+    apksign: true
+    apksignerKeystoreFile: 'app.keystore'
+    apksignerKeystorePassword: $(keystore.password)
+    apksignerKeystoreAlias: $(key.alias)
+    apksignerKeyPassword: $(key.password)
+    apksignerArguments: --verbose
+    zipalign: false
+
+- task: CopyFiles@2
+  inputs:
+  #  SourceFolder: $(Build.SourcesDirectory)
+   contents: '**/*.apk'
+   targetFolder: '*/app/'
+   overWrite: true
+
+- task: PublishBuildArtifacts@1
+  inputs:
+   pathtoPublish: '*/app/'
+   artifactName: 'apks'
+   publishLocation: 'container'
+
+- task: Gradle@2
+  inputs:
+    workingDirectory: ''
+    gradleWrapperFile: 'gradlew'
+    gradleOptions: '-Xmx3072m'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    publishJUnitResults: false
+    testResultsFiles: '**/TEST-*.xml'
+    tasks: 'appDistributionUploadUatRelease appDistributionUploadPre_prdRelease appDistributionUploadPrdRelease appDistributionUploadPrd_googleRelease'
+
+- script: |
+    az pipelines variable-group variable update --group-id $(androidVersionVariablesReleaseGroupId) --name versionCode --value $NEW_VERSION_CODE
+    az pipelines variable-group variable update --group-id $(androidVersionVariablesReleaseGroupId) --name versionName.build --value $NEW_VERSION_NAME_BUILD
+    az pipelines variable-group variable update --group-id $(androidVersionVariablesReleaseGroupId) --name versionName.datetime --value $NEW_VERSION_NAME_DATETIME
+    az pipelines variable-group variable list --group-id $(androidVersionVariablesReleaseGroupId) --output table
+  displayName: 'Job Completed, Update Azure DevOps version code and version name'
