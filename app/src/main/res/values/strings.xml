@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">TaipeiTravel</string>
+    <string name="show_data">show data</string>
+    <string name="get_data">交通管制資料</string>
 </resources>

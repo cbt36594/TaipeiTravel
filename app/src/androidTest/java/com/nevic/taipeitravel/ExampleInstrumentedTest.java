@@ -1,7 +1,6 @@
 package com.nevic.taipeitravel;
 
 import android.content.Context;
-import android.util.Log;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -11,6 +10,7 @@ import com.nevic.taipeitravel.api.APIService;
 import com.nevic.taipeitravel.api.CallAPI;
 import com.nevic.taipeitravel.log.Logger;
 import com.nevic.taipeitravel.log.UnitTestLogger;
+import com.nevic.taipeitravel.model.TaipeiData;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

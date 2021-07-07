@@ -1,20 +1,17 @@
 package com.nevic.taipeitravel;
 
-import android.content.Context;
-import android.util.Log;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.nevic.taipeitravel.api.APIService;
 import com.nevic.taipeitravel.api.CallAPI;
+import com.nevic.taipeitravel.model.MyData;
+import com.nevic.taipeitravel.model.SightseeingSpot;
+import com.nevic.taipeitravel.model.TaipeiData;
 
-import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.net.URL;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -29,7 +26,6 @@ import io.reactivex.schedulers.Schedulers;
 import retrofit2.Response;
 
 import static org.junit.Assert.*;
-import androidx.test.platform.app.InstrumentationRegistry;
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -58,10 +54,10 @@ public class ExampleUnitTest {
     public void getdata2() throws IOException {
         Gson gson = new GsonBuilder().create();
         CallAPI callAPI = APIService.callAPI(APIService.getHeaders(new ArrayList<String>()));
-        callAPI.TaipeiData("resourceAquire")
+        callAPI.TaipeiData("resourceAquire","2")
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new SingleObserver<Response<TaipeiData>>() {
+                .subscribe(new SingleObserver<Response<TaipeiData<SightseeingSpot>>>() {
 
                     @Override
                     public void onSubscribe(@NonNull Disposable d) {
@@ -69,8 +65,8 @@ public class ExampleUnitTest {
                     }
 
                     @Override
-                    public void onSuccess(@NonNull Response<TaipeiData> resultResponse) {
-                        System.out.println(resultResponse);
+                    public void onSuccess(@NonNull Response<TaipeiData<SightseeingSpot>> resultResponse) {
+                        System.out.println(resultResponse.body().getResult().getResults());
                     }
 
                     @Override

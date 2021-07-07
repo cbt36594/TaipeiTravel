@@ -1,4 +1,4 @@
-package com.nevic.taipeitravel;
+package com.nevic.taipeitravel.model;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;

@@ -1,11 +1,11 @@
-package com.nevic.taipeitravel;
+package com.nevic.taipeitravel.model;
 
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
 
-public class Result {
+public class Result<T> {
     /**
      * limit : 2
      * offset : 0
@@ -23,7 +23,7 @@ public class Result {
     @SerializedName("sort")
     private String sort;
     @SerializedName("results")
-    private List<Results> results;
+    private List<T> results;
 
     public int getLimit() {
         return limit;
@@ -57,11 +57,11 @@ public class Result {
         this.sort = sort;
     }
 
-    public List<Results> getResults() {
+    public List<T> getResults() {
         return results;
     }
 
-    public void setResults(List<Results> results) {
+    public void setResults(List<T> results) {
         this.results = results;
     }
 
