@@ -2,6 +2,7 @@ package com.nevic.taipeitravel;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -26,19 +27,36 @@ import retrofit2.Response;
 
 
 public class MainActivity extends AppCompatActivity {
-    ActivityMainBinding binding;
+
+    private ActivityMainBinding binding;
+    private MyViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        viewModel = new ViewModelProvider(this).get(MyViewModel.class);
+        binding.setViewModel(viewModel);
+        binding.setLifecycleOwner(this);
         binding.btnGetText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getData();
+                viewModel.getTrafficData();
             }
         });
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        viewModel.load.observe(this, load -> {
+            if (load) {
+                binding.progressBar.setVisibility(View.VISIBLE);
+            } else {
+                binding.progressBar.setVisibility(View.GONE);
+            }
+        });
     }
 
     private void getData() {
